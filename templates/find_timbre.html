@@ -1,0 +1,65 @@
+<html>
+	<head>
+			<meta charset="UTF-8">
+			<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/main.css') }}">
+			<script type="text/javascript" src="{{ url_for('static', filename='find_timbre.js') }}"></script>
+			<title>Find Timbre Matches</title>
+	</head>
+	<section id="page">
+	  <header>
+		
+	  </header>
+	  <nav>
+		<ul>
+			<li><a href="/">Return Home</a></li>
+			<li><a href="/select_song">Select a New Song</a></li>
+		</ul>
+	  </nav>
+	  <main>
+		<h1>Matches</h1>
+		<div id={{ suri }}>
+			<form id="searchForm" onsubmit="return find_match()">
+				<label for="start">Start Second:</label>
+				<input type="number" id="starts" name="stime">
+				
+				<label for="end">End Second:</label>
+				<input type="number" id="ends" name="etime">
+				
+				<label for="degree">Degree to Search:</label>
+				<input type="number" id="deg" name="deg">
+				
+				<p>EdgeList Size:</p>
+				<label for="esize1">1</label>
+				<input type="radio" id="size1" name="esize" value="1">
+				<label for="esize20">20</label>
+				<input type="radio" id=size20 name="esize" value="1">
+				
+				
+				<label for="uri">URI:</label>
+				<input type="text" value={{ suri }} id="uid" name="uid">
+				<input type="submit" value="Search">
+			</form>
+			
+			<script>
+			async function find_match() {
+				const data = new FormData(
+					document.getElementById("{{ suri }}")
+				);
+				
+				fetch("/find_timbre", {"body": data}).then(
+					response => {
+						if (response.redirected) {
+							window.location = response.url
+						} else {
+							console.log("err")
+						}
+					}
+				)
+			}
+			</script>
+		</div>
+		
+	  <main>
+	  <footer></footer>
+	</section>
+</html>

@@ -1,0 +1,50 @@
+<html>
+	<head>
+			<meta charset="UTF-8">
+			<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/main.css') }}">
+			<title>Timbre Found</title>
+	</head>
+	<section id="page">
+	  <header>
+		
+	  </header>
+	  <nav>
+		<ul>
+			<li><a href="/">Return Home</a></li>
+			<li><a href="/select_song">Select a New Song</a></li>
+		</ul>
+	  </nav>
+	  <main>
+		<div>
+			{% if data %}
+			<table>
+				<tr>
+					<th>Degree</th>
+					<th>Track</th>
+					<th>Distance</th>
+					<th>Start Second</th>
+					<th>End Second</th>
+				</tr>
+				{% for key, value in data.items() %}
+				{% for val in value %}
+				<tr>
+					<td>
+						{{ key }}
+					</td>
+					<td><a href={{ 'https://open.spotify.com/track/' ~ val[0] }} target="_blank" rel="noopener noreferrer">{{ val[0] }}</a></td>
+					<td>{{ val[1] }}</td>
+					<td>{{ val[2] }}</td>
+					<td>{{ val[3] }}</td>
+				</tr>
+				{% endfor %}
+				{% endfor %}
+			</table>
+			{% endif %}
+		</div>
+		<div>
+			<img src="{{ url_for('static',filename='plot.png') }}" alt="plot">
+		</div>
+	  <main>
+	  <footer></footer>
+	</section>
+</html>

@@ -1,0 +1,65 @@
+<html>
+	<head>
+			<meta charset="UTF-8">
+			<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/main.css') }}">
+			<title>Help</title>
+	</head>
+	<section id="page">
+	  <header>
+		
+	  </header>
+	  <nav>
+		<ul>
+			<li><a href="/">Return Home</a></li>
+		</ul>
+	  </nav>
+	  <main>
+	  
+		<form action="{{ url_for("select_song") }}" method="post">
+		
+		<!--Couldn't get the name working in the spotipy query..-->
+		<!--<label for="artistname">Artist Name:</label>-->
+		<!--<input type="text" id="artistname" name="aname" placeholder={{ selected_artist }}>-->
+		
+		<label for="trackname">Search for a Track Name:</label>
+		<input type="text" id="trackname" name="tname" placeholder={{ selected_name }}>
+		
+		<!--<label for="start">Start Second:</label>-->
+		<!--input type="text" id="starts" name="stime"-->
+		
+		<!--label for="end">End Second:</label-->
+		<!--input type="text" id="ends" name="etime"-->
+		
+		<button type="submit">Search for Track</button>
+		</form>
+		
+		<div>
+			{% if sinfo %}
+			<form action="{{ url_for("find_timbre") }}" method="post">
+			<table>
+				<tr>
+					<th>Select Track</th>
+					<th>Album Art</th>
+					<th>Album Name</th>
+					<th>Artist Name</th>
+				</tr>
+				{% for item in sinfo %}
+				<tr>
+					<td>
+						<input type="checkbox" name="selected" value={{ item[4] }}>
+						<label for={{ item[4] }}>{{ item[0] }}</label>
+					</td>
+					<td><a href={{ item[3] }} target="_blank" rel="noopener noreferrer"><img src={{ item[2] }} alt="none" width="200" height="200"></a></td>
+					<td ><a href="/find_timbre">{{ item[1] }}</a></td>
+					<td>{{ item[5] }}</td>
+				</tr>
+				{% endfor %}
+			</table>
+			<input type="submit" value="Submit">
+			</form>
+			{% endif %}
+		</div>
+	  <main>
+	  <footer></footer>
+	</section>
+</html>
