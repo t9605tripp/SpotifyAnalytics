@@ -1,0 +1,3 @@
+segmentation.html javascript for smooth segmentation?
+
+preprocessing the existing segment data with hashing?

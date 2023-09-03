@@ -3,6 +3,7 @@ import os
 from flask import Flask, session, request, redirect, make_response, render_template, jsonify
 from flask_session import Session
 import spotipy
+import timbre_selection
 
 
 app = Flask(__name__)
@@ -17,7 +18,7 @@ Session(app)
 def index():
 
     cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
-    auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private',
+    auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing user-read-playback-state  playlist-modify-private',
                                                cache_handler=cache_handler,
                                                show_dialog=True, open_browser=False)
 
@@ -38,7 +39,7 @@ def index():
            f'<a href="/playlists">my playlists</a> | ' \
            f'<a href="/currently_playing">currently playing</a> | ' \
         f'<a href="/current_user">me</a> | ' \
-        f'<a href="/select_song">Find a Timbre</a>' \
+        f'<a href="/selection">Select a Song</a>'
 
 #template
 @app.route('/sign_out')
@@ -80,16 +81,39 @@ def current_user():
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     return spotify.current_user()
 
-@app.route('/devices')
-def devices():
+@app.get('/selection')
+def selection_get():
     cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
         return redirect('/')
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    return spotify.devices()
+    return render_template('selection.html')
 
-
+@app.post('/selection')
+def selection_post():
+    cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        return redirect('/')
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    utrack_name = request.form['selection']
+    options = timbre_selection.search(spotify, utrack_name)
+    track_uris = []
+    for item in options['tracks']['items']:
+        track_uris.append(item['uri'].replace('spotify:track:', ''))
+        #track_uris.append(item['uri'].replace('spotify:track:',''))
+    return render_template('selection.html', track_uris=track_uris)
+    
+@app.post('/segmentation')
+def segmentation_post():
+    cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        return redirect('/')
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    selected_track = request.get_data()
+    return render_template('segmentation.html', selected_track=selected_track)
 '''
 Following lines allow application to be run more conveniently with
 `python app.py` (Make sure you're using python3)

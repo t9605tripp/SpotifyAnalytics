@@ -42,11 +42,12 @@ def terminal_search(sp):
     #sp.start_playback(selection['uri'])
 
 
-#search for matching tracks
-def search(sp, track_info):
-    result = sp.search(track_info, type='track')
-    return result
+#search for matching track name
+#could expand this to albums, getting top X tracks etc from account
+def search(sp, utrack_name):
+    options = sp.search(utrack_name, type='track')
+    return options
 
-if __name__ == '__main__':
-    sp = init_sp()
-    terminal_search(sp)
+#if __name__ == '__main__':
+#    sp = init_sp()
+#    terminal_search(sp)

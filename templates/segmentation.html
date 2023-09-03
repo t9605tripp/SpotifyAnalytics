@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	{% if selected_track %}
+    {{ selected_track }}
+	<div id="embed-track:{{item}}" width=100%>
+	<iframe class="iframe-track" allowtransparency="true"
+     src="https://open.spotify.com/embed/track/{{ selected_track }}"
+     allow="encrypted-media" frameborder="0"></iframe>
+	</div>
+  
+	{% endif %}
+{% endblock %}
+			

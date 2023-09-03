@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+   <form method="post">
+      <label for="selection">Selection</label>
+	  <input name="selection" id="selection" required>
+	  <input type="submit" value="Search">
+   </form>
+   {% if track_uris %}
+   <form method="post" action='/segmentation'>
+   <input type="submit" value="Select">
+   {% for item in track_uris %}
+	{# {{ item }} #}
+	
+	<div id="embed-track:{{item}}" width=100%>
+	
+	<label for = "radio-{{ item }}"></label>
+	<input type="radio" id="radio-{{ item }}" name="radio-{{ item }}" value="{{ item }}">
+	
+	<iframe class="iframe-track" allowtransparency="true"
+     src="https://open.spotify.com/embed/track/{{ item }}"
+     allow="encrypted-media" frameborder="0"></iframe>
+	
+	</div>
+  {% endfor %}
+  <input type="submit" value="Select">
+  </form>
+{% endif %}
+{% endblock %}
+			
