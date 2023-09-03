@@ -4,3 +4,4 @@
 .cache
 .flask_session/*
 *.png
+sptimbre/*
