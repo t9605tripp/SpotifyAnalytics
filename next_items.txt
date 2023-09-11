@@ -1,3 +1,8 @@
 segmentation.html javascript for smooth segmentation?
 
 preprocessing the existing segment data with hashing?
+
+---------------------------------------------------
+Show statistics around hashing
+
+song uid | seg_index | hash
