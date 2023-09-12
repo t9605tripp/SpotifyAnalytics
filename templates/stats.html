@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+   <form method="post" action='/stats_display'>
+   <input type="submit" value="Select">
+   <table>
+        <tr>
+		<td>Select</td>
+		<td>Category</td>
+		<td>Name</td>
+	</tr>
+   	{% for item in datasets['freads'] %}
+	<tr>
+		<td>
+		<label for = "radio-{{ item }}"></label>
+		<input type="radio" id="radio-{{ item }}" name="radio-{{ item }}" value="{{ item }}">
+		</td>
+		<td>File Read Times</td>
+		<td>{{ item  }}</td>
+	</tr>
+  	{% endfor %}
+	{% for item in datasets['timbres'] %}
+	<tr>
+		<td>
+			<label for = "radio-{{ item }}"></label>
+			<input type="radio" id="radio-{{ item }}" name="radio-{{ item }}" value="{{ item }}">
+		</td>
+		<td>Timbre Stats</td>
+		<td>{{ item }}</td>
+	</tr>
+	{% endfor %}
+   </table>
+   <input type="submit" value="Select">
+   </form>
+{% endblock %}
+			

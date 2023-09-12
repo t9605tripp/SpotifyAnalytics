@@ -134,7 +134,9 @@ def open_gz(file_path):
     #print(chunk)
 #
 
-
+"""
+init a dict for storing fread times
+"""
 def init_timer_dict():
     timer_dict = {}
     timer_dict.setdefault('idx',[])
@@ -142,20 +144,14 @@ def init_timer_dict():
     timer_dict.setdefault('uid',[])
     timer_dict.setdefault('seglen',[]) 
     return timer_dict
-
-def insert_timer(timer_dict, idx, rt, uid, seglen):
-    timer_dict['idx'].append(idx)
+"""
+insert a record for fread
+"""
+def insert_timer(timer_dict, rt, uid, seglen):
     timer_dict['runtime'].append(rt)
     timer_dict['uid'].append(uid)
     timer_dict['seglen'].append(seglen)
     return
-
-def init_timbre_arr():
-    timbre_dict = {}
-    timbre_dict.setdefault('idx',[])
-    timbre_dict.setdefault('t1')
-    timbre_dict.setdefault('')
-    return timbre_dict
 
 def insert_timbre_data(timbre_vec_stats, curr, segments):
      #python floats are 32 bit, and so is time.time() and timbre data, duration, start
@@ -190,7 +186,7 @@ def main():
         segments, runtime = open_gz(fp)
         if segments:
             seglen = len(segments)
-            insert_timer(read_data_timer, file_read_ct, runtime, uid, seglen)
+            insert_timer(read_data_timer, runtime, uid, seglen)
             insert_timbre_data(timbre_vec_stats, curr_timbre_vec, segments)
             curr_timbre_vec+=seglen
             if file_read_ct < 1:
