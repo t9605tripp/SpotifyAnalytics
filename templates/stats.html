@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+   {% if datasets  %}
    <form method="post" action='/stats_display'>
    <input type="submit" value="Select">
    <table>
@@ -12,8 +13,8 @@
    	{% for item in datasets['freads'] %}
 	<tr>
 		<td>
-		<label for = "radio-{{ item }}"></label>
-		<input type="radio" id="radio-{{ item }}" name="radio-{{ item }}" value="{{ item }}">
+			<label for="radio-{{ item }}"></label>
+			<input type="radio" id="radio-{{ item }}" name="radio-data" value="{{ item }}">
 		</td>
 		<td>File Read Times</td>
 		<td>{{ item  }}</td>
@@ -23,14 +24,29 @@
 	<tr>
 		<td>
 			<label for = "radio-{{ item }}"></label>
-			<input type="radio" id="radio-{{ item }}" name="radio-{{ item }}" value="{{ item }}">
+			<input type="radio" id="radio-{{ item }}" name="radio-data" value="{{ item }}">
 		</td>
 		<td>Timbre Stats</td>
 		<td>{{ item }}</td>
 	</tr>
 	{% endfor %}
    </table>
+   <select id="datadisplay" name="datadisplay">
+  		<option value="histograms">Histogram All Data</option>
+  		<option value="correlation">Correlation Heatmap</option>
+  		<option value="next">Not Yet</option>
+	</select>
    <input type="submit" value="Select">
    </form>
+   {% endif %}
+   {#<div><p>{{ graphJSON }}</p></div>#}
+   {% if graphJSON %}
+   	<div id="chart" class="chart"></div>
+	<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+	<script type='text/javascript'>
+  		var graphs = {{graphJSON | safe}};
+  		Plotly.plot('chart',graphs,{});
+	</script>
+   {% endif %}
 {% endblock %}
 			

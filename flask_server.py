@@ -5,6 +5,8 @@ from flask_session import Session
 import spotipy
 import timbre_selection
 import read_data
+import chart_studio.tools as tls
+
 
 def create_app():
     app = Flask(__name__)
@@ -84,7 +86,7 @@ def create_app():
         return spotify.current_user()
 
     @app.get('/stats_display')
-    def stats_display():
+    def stats_display_get():
         cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
@@ -93,8 +95,25 @@ def create_app():
         dfs = read_data.gather_dfs()
         return render_template('stats.html', datasets=dfs)
 
+#https://www.geeksforgeeks.org/create-a-bar-chart-from-a-dataframe-with-plotly-and-flask/#
+    @app.post('/stats_display')
+    def stats_display_post():
+        cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            return redirect('/')
+        spotify = spotipy.Spotify(auth_manager=auth_manager)
+        #maybe move this splitting to a separate function, or figure out how to use JSON for something cleaner than this
+        dfs = read_data.gather_dfs()
+        data = request.get_data()
+        split_data = data.decode(encoding='utf-8').split('&')
+        f_select = split_data[0].split('=')[1]
+        graph_type = split_data[1].split('=')[1]
+        graphJSON = read_data.make_chart_px(f_select, graph_type)
+        return render_template('stats.html', graphJSON=graphJSON, datasets=dfs)
+
     @app.get('/selection')
-    def selection_get():
+    def selection_get():         
         cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
@@ -135,6 +154,6 @@ Following lines allow application to be run more conveniently with
 '''
 if __name__ == '__main__':
     app = create_app()
-    app.run(threaded=True, host='152.10.217.87', port=int(os.environ.get("PORT",
+    app.run(threaded=True, debug=True, host='152.10.217.87', port=int(os.environ.get("PORT",
             os.environ.get('SPOTIPY_REDIRECT_URI', 5000).split(":")[-1])))
                                                                               

@@ -139,7 +139,7 @@ init a dict for storing fread times
 """
 def init_timer_dict():
     timer_dict = {}
-    timer_dict.setdefault('idx',[])
+    #timer_dict.setdefault('idx',[])
     timer_dict.setdefault('runtime',[])
     timer_dict.setdefault('uid',[])
     timer_dict.setdefault('seglen',[]) 
