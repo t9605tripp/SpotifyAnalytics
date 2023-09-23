@@ -98,11 +98,14 @@ def make_correlation_heatmap(df):
     # Calculate the correlation matrix
     correlation_matrix = df.corr()
     fig = go.Figure(data=go.Heatmap(z=correlation_matrix.values, x=correlation_matrix.columns,
-        y=correlation_matrix.columns, colorscale='Viridis', text_auto=True))
+        y=correlation_matrix.columns, colorscale='Viridis'))
     # Serialize the figure to JSON
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     return graphJSON
 
+
+#try to normalize these, make them more bayesian.
+#
 def make_histograms(df_top):
     total_cols = len(df_top.columns)
     #generative ai
@@ -118,7 +121,7 @@ def make_histograms(df_top):
         col = (i % shape) + 1
         fig.add_trace(go.Histogram(x=df_top[column], name=column), row=row, col=col)
         fig.update_xaxes(title_text=column, row=row, col=col, automargin=True)
-        fig.update_yaxes(title_text='Freq', row=row, col=col, automargin=True)
+        fig.update_yaxes(title_text='Count', row=row, col=col, automargin=True)
 
     # Update the layout
     fig.update_layout(title_text='Histogram Subplots', showlegend=True, height=figure_height)

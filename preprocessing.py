@@ -171,7 +171,7 @@ def insert_timbre_data(timbre_vec_stats, curr, segments):
                 seg['timbre'][8],seg['timbre'][9],seg['timbre'][10],seg['timbre'][11], seg['start'], seg['duration'], idx)
     return
 
-def main():
+def first_attempt():
     global miss_ct
     timbre_vec_stats = np.empty([200000,1],dtype=timbre_dt)
     read_data_timer = init_timer_dict()
@@ -199,6 +199,38 @@ def main():
     with open(f'./logs/freads/{uid}_freads_{file_read_ct}_ct.json','w') as f:
         json.dump(read_data_timer, f, indent=4)
     pbar.close()
+
+def get_random_seg():
+    fp, uid = get_random_filepath()
+    segments, runtime = open_gz(fp)
+    seg = None
+    if segments:
+        seg = random.choice(segments)
+    return seg
+
+def get_timbre_bound_point():
+    seg = get_random_seg()
+    return np.array([seg['timbre'][0], seg['timbre'][1], seg['timbre'][2], seg['timbre'][3],
+        seg['timbre'][4], seg['timbre'][5], seg['timbre'][6], seg['timbre'][7], seg['timbre'][8],
+        seg['timbre'][9], seg['timbre'][10], seg['timbre'][11]]).astype(np.int16)
+
+#currently only returns np.int16, but could make this variable precision
+def get_timbre_bound_data():
+    import psutil
+    print(psutil.virtual_memory())
+    max_segs = 100000
+    timbre_bounds = np.empty([max_segs,12],dtype=np.int16)
+    seg_ct = 0
+    pbar = tqdm(total = max_segs)
+    while seg_ct < max_segs:
+        timbre_bounds[seg_ct,] = get_timbre_bound_point()
+        pbar.update(1)
+    pbar.close()
+    return timbre_bounds
+
+def main():
+    print(get_timbre_bound_data())
+
 if __name__ == "__main__":
     main()
 
