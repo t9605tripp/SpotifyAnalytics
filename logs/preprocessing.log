@@ -316,3 +316,7 @@ DEBUG:root:[Errno 2] No such file or directory: '/home/tripptd/spotify/audio_ana
 DEBUG:root:[Errno 2] No such file or directory: '/home/tripptd/spotify/audio_analysis/7SJ/'
 DEBUG:root:[Errno 2] No such file or directory: '/home/tripptd/spotify/audio_analysis/7T5/'
 DEBUG:root:Not a gzipped file (b'{"')
+DEBUG:root:[Errno 2] No such file or directory: '/home/tripptd/spotify/audio_analysis/7UV/'
+DEBUG:root:[Errno 2] No such file or directory: '/home/tripptd/spotify/audio_analysis/7Yh/'
+DEBUG:root:[Errno 2] No such file or directory: '/home/tripptd/spotify/audio_analysis/7Sh/'
+DEBUG:root:[Errno 2] No such file or directory: '/home/tripptd/spotify/audio_analysis/7Pf/'

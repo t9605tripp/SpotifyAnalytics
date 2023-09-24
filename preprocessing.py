@@ -206,7 +206,12 @@ def get_random_seg():
     seg = None
     if segments:
         seg = random.choice(segments)
-    return seg
+        if seg['timbre'][0]:
+            return seg
+        else:
+            return get_random_seg()
+           
+
 
 def get_timbre_bound_point():
     seg = get_random_seg()
@@ -216,16 +221,16 @@ def get_timbre_bound_point():
 
 #currently only returns np.int16, but could make this variable precision
 def get_timbre_bound_data():
-    import psutil
-    print(psutil.virtual_memory())
+    #import psutil
+    #print(psutil.virtual_memory())
     max_segs = 100000
     timbre_bounds = np.empty([max_segs,12],dtype=np.int16)
     seg_ct = 0
-    pbar = tqdm(total = max_segs)
+    #pbar = tqdm(total = max_segs)
     while seg_ct < max_segs:
         timbre_bounds[seg_ct,] = get_timbre_bound_point()
-        pbar.update(1)
-    pbar.close()
+        #pbar.update(1)
+    #pbar.close()
     return timbre_bounds
 
 def main():
