@@ -7,6 +7,7 @@ import matplotlib as mpl
 import numpy as np
 from matplotlib import cm
 from matplotlib import pyplot as plt
+import scaling
 
 #from sklearn.datasets import fetch_california_housing
 from sklearn.preprocessing import (
@@ -20,9 +21,11 @@ from sklearn.preprocessing import (
     minmax_scale,
 )
 
-dataset = fetch_california_housing()
+arr = scaling.load_scaling_data()
+dataset = scaling.make_pd(arr)
+dataset = dataset.rename(columns={'col1': 'new_col1', 'col2': 'new_col2'})
 
-X_full, y_full = dataset.data, dataset.target
+X_full = dataset.data
 feature_names = dataset.feature_names
 
 feature_mapping = {

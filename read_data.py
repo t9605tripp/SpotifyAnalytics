@@ -12,21 +12,23 @@ import plotly.graph_objects as go
 import math
 # htitps://towardsdatascience.com/the-art-of-effective-visualization-of-multi-dimensional-data-6c7202990c57
 
+global timbre_path = './old_logs/timbre/'
+global fread_path = './old_logs/freads/'
 """
 Turn the timbre_arr structured array into a df for easy display, concats with other runs
 """
 def get_timbre_list():
-    timbre_path = './logs/timbre/'
+    global timbre_path
     files_list = os.listdir(timbre_path)
     return files_list
 
 def get_fread_list():
-    fread_path = './logs/freads/'
+    global fread_path
     files_list = os.listdir(fread_path)
     return files_list
 
 def load_df_timbre(f_selected):
-    timbre_path = './logs/timbre/'
+    global timbre_path
     timbre_arr = np.load(timbre_path + f_selected)
     #t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12
     #seg_start, seg_dur, seg_idx
@@ -34,7 +36,7 @@ def load_df_timbre(f_selected):
     return df
 
 def load_df_fread(f_selected):
-    fread_path = './logs/freads/'
+    global fread_path
     with open(fread_path+f_selected,'r') as f:
         fread_dict = json.load(f)
     df = pd.DataFrame(fread_dict)
@@ -114,7 +116,6 @@ def make_histograms(df_top):
     figure_height = subplot_height * shape
     #vertical_spacing
     fig = make_subplots(rows=shape, cols=shape, row_heights=[subplot_height]*shape)
-
     # Add histograms to each subplot
     for i, column in enumerate(df_top.columns):
         row = (i // shape) + 1
@@ -122,7 +123,6 @@ def make_histograms(df_top):
         fig.add_trace(go.Histogram(x=df_top[column], name=column), row=row, col=col)
         fig.update_xaxes(title_text=column, row=row, col=col, automargin=True)
         fig.update_yaxes(title_text='Count', row=row, col=col, automargin=True)
-
     # Update the layout
     fig.update_layout(title_text='Histogram Subplots', showlegend=True, height=figure_height)
 
