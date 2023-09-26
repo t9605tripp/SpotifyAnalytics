@@ -102,13 +102,14 @@ def main():
     data = load_scaling_data()
     #print(data)
     features = extract_features(data)
-    print(features)
+    #print(features)
     #read_numpy_histograms()
     #df = make_pd(data)
     for idx, feature in enumerate(features):
         total_records = feature.shape[0]  
         ax = sns.histplot(data=feature,stat='density',bins=100)
         plt.savefig(f'./{idx}_{total_records}')
+        plt.clf()
     #print(df.head)
     #extract_features_data()
     #transformer = RobustScaler().fit(X)
