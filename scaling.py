@@ -101,19 +101,21 @@ def main():
     #load_timbres(1000)
     data = load_scaling_data()
     #print(data)
-    features = extract_features(data)
+    #features = extract_features(data)
     #print(features)
     #read_numpy_histograms()
     #df = make_pd(data)
+    transformer = RobustScaler().fit(data)
+    scaled_data = transformer.transform(data)
+    features = extract_features(scaled_data)
     for idx, feature in enumerate(features):
         total_records = feature.shape[0]  
         ax = sns.histplot(data=feature,stat='density',bins=100)
+        plt.title(f't{idx} {total_records} Robust Scaled Density Hist, 100 bins')
         plt.savefig(f'./{idx}_{total_records}')
         plt.clf()
     #print(df.head)
     #extract_features_data()
-    #transformer = RobustScaler().fit(X)
-    #transformer.transform(timbre_data)
-
+    
 if __name__ == "__main__":
     main()
