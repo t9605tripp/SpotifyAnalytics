@@ -5,6 +5,7 @@ import random
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 def get_timbre_opts():
     opts = os.listdir('./logs/')
@@ -41,6 +42,7 @@ def extract_features(data):
     features = []
     for feature_idx in range(data.shape[1]):
         feature_data = data[:, feature_idx]
+        features.append(feature_data)
     return features
 
 def make_numpy_histograms(arr):
@@ -98,11 +100,15 @@ def robust_scaling(arr):
 def main():
     #load_timbres(1000)
     data = load_scaling_data()
-    #make_numpy_histograms(data)
-    read_numpy_histograms()
-    df = make_pd(data)
-    plt.hist(df,bins=10,density=True)
-    plt.savefig('./hist_sample.png')
+    #print(data)
+    features = extract_features(data)
+    print(features)
+    #read_numpy_histograms()
+    #df = make_pd(data)
+    for idx, feature in enumerate(features):
+        total_records = feature.shape[0]  
+        ax = sns.histplot(data=feature,stat='density',bins=100)
+        plt.savefig(f'./{idx}_{total_records}')
     #print(df.head)
     #extract_features_data()
     #transformer = RobustScaler().fit(X)
