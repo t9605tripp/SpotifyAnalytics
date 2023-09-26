@@ -59,7 +59,7 @@ def read_numpy_histograms():
     fp = f'./scaling_hists/'
     scaling_hists = os.listdir(fp)
     for hist in scaling_hists:
-        arr = np.load(hist)
+        arr = np.load(fp+hist)
         print(arr)
 
 def make_pd(arr):
@@ -101,7 +101,7 @@ def main():
     #make_numpy_histograms(data)
     read_numpy_histograms()
     df = make_pd(data)
-    df.hist(density=True)
+    plt.hist(df,bins=10,density=True)
     plt.savefig('./hist_sample.png')
     #print(df.head)
     #extract_features_data()
