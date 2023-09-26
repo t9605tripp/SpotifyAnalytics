@@ -108,12 +108,17 @@ def main():
     transformer = RobustScaler().fit(data)
     scaled_data = transformer.transform(data)
     features = extract_features(scaled_data)
-    for idx, feature in enumerate(features):
-        total_records = feature.shape[0]  
-        ax = sns.histplot(data=feature,stat='density',bins=100)
-        plt.title(f't{idx} {total_records} Robust Scaled Density Hist, 100 bins')
-        plt.savefig(f'./{idx}_{total_records}')
+    features2 = extract_features(data)
+    pid = os.getpid()
+    idx = 1
+    for (feature1, feature2) in zip(features, features2):
+        total_records = feature1.shape[0]  
+        ax = sns.histplot(data=feature1,stat='density',bins=100)
+        ax = sns.histplot(data=feature2,stat='density', bins=100)
+        plt.title(f't{idx}_{total_records} Comparison of Density Hist, 100 bins')
+        plt.savefig(f'./scaling_hists/scaled_{idx}_{total_records}_{pid}')
         plt.clf()
+        idx+=1
     #print(df.head)
     #extract_features_data()
     
