@@ -92,21 +92,40 @@ def make_graph_histograms(df_top):
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     return graphJSON
 
-def robust_scaling(arr):
+def get_robust_scaled_data():
+    arr = load_scaling_data()
     transformer = RobustScaler().fit(arr)
     scaled_arr = transformer.transform(arr)
-    return scaled_arr
+    return transformer, scaled_arr
 
-def main():
-    #load_timbres(1000)
-    data = load_scaling_data()
-    #print(data)
-    #features = extract_features(data)
-    #print(features)
-    #read_numpy_histograms()
-    #df = make_pd(data)
-    transformer = RobustScaler().fit(data)
-    scaled_data = transformer.transform(data)
+def save_index_vecs(num_indexes):
+    index_arr = np.empty((num_indexes,12), np.float32)
+    index_vecs_fp = './index_vecs/'
+    transformer, training_data = get_robust_scaled_data()
+    features = extract_features(training_data)
+    distributions = []
+    bin_edges_list = []
+    #ALL THE INFO FOR THE SCALING BINS
+    
+    for idx, feature in enumerate(features):
+        uniform_min = np.min(feature)
+        uniform_max = np.max(feature)
+        print(np.min(feature), ' ', np.max(feature))
+        samples = np.random.default_rng().uniform(uniform_min, uniform_max, num_indexes)
+        index_arr[:, idx] = samples
+    np.save(index_vecs_fp + f'{num_indexes}_robust_float32_indexes', index_arr)
+        #density, bin_edges = np.histogram(feature, bins=100, density=True)
+        #distributions.append(density)
+        #bin_edges_list.append(bin_edges)
+        #print('density:')
+        #print(density)
+        #print('bin edges:')
+        #print(bin_edges)
+    #print(distributions)
+    #np.random.choice(training_data)
+    #np.save('./index_vecs/64_index_robust_scaled_float32', index_arr)
+
+def plotting_sns_hists():
     features = extract_features(scaled_data)
     features2 = extract_features(data)
     pid = os.getpid()
@@ -119,8 +138,9 @@ def main():
         plt.savefig(f'./scaling_hists/scaled_{idx}_{total_records}_{pid}')
         plt.clf()
         idx+=1
-    #print(df.head)
-    #extract_features_data()
-    
+
+def main():
+   save_index_vecs(64)
+
 if __name__ == "__main__":
     main()

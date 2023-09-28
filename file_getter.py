@@ -36,7 +36,7 @@ class FileGetter:
         
         #Flag Exhausted Files/Dirs
         #self.exhausted_files = False
-        #self.exhausted_dirs = False
+        self.exhausted_dirs = False
     """
     GET DIRS SECTION***********************************************************
     """
@@ -65,6 +65,7 @@ class FileGetter:
             self.dir_idx = -1
             self.curr_dir = None
             self.ordered_dirs = None
+            self.exhausted_dirs = True
         return
     """ 
     Get a random existing dir
@@ -124,7 +125,10 @@ class FileGetter:
                 self.get_segs()
             else:
                 self.file_idx = -1
-                self.get_next_dir()
+                if not(self.exhausted_dirs):
+                    self.get_next_dir()
+                else:
+                    return
         return
 
     """
@@ -157,7 +161,9 @@ class FileGetter:
             return valid_seg
         else:
             return -1
-
+    """
+    OPEN FOR CALLING
+    """
     def get_random_timbre(self):
         self.get_random_dir()
         #print('dir:'+str(self.curr_dir))
@@ -169,3 +175,7 @@ class FileGetter:
         random_timbre = self.get_random_seg()['timbre']
         #Return the timbre part
         return random_timbre
+
+    def get_next_segs():
+        self.get_next_file()
+        return self.segs
