@@ -176,6 +176,9 @@ class FileGetter:
         #Return the timbre part
         return random_timbre
 
-    def get_next_segs():
+    def get_next_segs(self):
         self.get_next_file()
         return self.segs
+
+    def get_uid(self):
+        return self.curr_file[:-8]

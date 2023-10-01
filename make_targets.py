@@ -7,12 +7,13 @@ from simhash import SimHash
 def init_workers(chunk_start, chunk_end):
     selected_hash_fp = './index_vecs/64_robust_float32_indexes.npy'
     fg = file_getter.FileGetter(chunk_start, chunk_end)
+    uid = fg.get_uid()
+    #print(uid)
     #MAGIC NUMBERS ARE BAD BUT HERE ARE SOME THAT CONTROL THE SELECTED VECTORS FOR COSINE SIMILARITY
-    indexes = np.load(selected_hash_fp)[0:7,:]
-    hasher = SimHash(indexes) 
+    indexes = np.load(selected_hash_fp)[0:8,:]
+    hasher = SimHash(indexes, uid) 
     hasher.hash(fg.segs)
-    
-
+     
     #while not(fg.exhausted_dirs):
     #    fg.get_next_file()
 
