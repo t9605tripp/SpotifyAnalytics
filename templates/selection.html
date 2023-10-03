@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
+   <script>
+   	window.open("https://open.spotify.com", "new_tab");
+   </script>
    <form method="post">
       <label for="selection">Selection</label>
 	  <input name="selection" id="selection" required>
@@ -8,14 +11,14 @@
    </form>
    {% if track_uris %}
    <form method="post" action='/segmentation'>
-   <input type="submit" value="Select">
+   <input type="submit" value="Segment">
    {% for item in track_uris %}
 	{# {{ item }} #}
 	
-	<div id="embed-track:{{item}}" width=100%>
+	<div id="embed-track:{{ item }}" width=100%>
 	
 	<label for = "radio-{{ item }}"></label>
-	<input type="radio" id="radio-{{ item }}" name="radio-{{ item }}" value="{{ item }}">
+	<input type="radio" id="radio-{{ item }}" name="radio-data" value="{{ item }}">
 	
 	<iframe class="iframe-track" allowtransparency="true"
      src="https://open.spotify.com/embed/track/{{ item }}"
@@ -23,7 +26,6 @@
 	
 	</div>
   {% endfor %}
-  <input type="submit" value="Select">
   </form>
 {% endif %}
 {% endblock %}
