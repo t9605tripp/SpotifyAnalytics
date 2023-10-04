@@ -12,8 +12,8 @@ import plotly.graph_objects as go
 import math
 # htitps://towardsdatascience.com/the-art-of-effective-visualization-of-multi-dimensional-data-6c7202990c57
 
-global timbre_path = './old_logs/timbre/'
-global fread_path = './old_logs/freads/'
+timbre_path = './old_logs/timbre/'
+fread_path = './old_logs/freads/'
 """
 Turn the timbre_arr structured array into a df for easy display, concats with other runs
 """

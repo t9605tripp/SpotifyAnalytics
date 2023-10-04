@@ -49,7 +49,7 @@ class FileGetter:
         self.dirs_len = len(self.ordered_dirs)
         #print(self.dirs_len)
         self.get_next_dir()
-        #print(self.curr_dir)
+        print(self.curr_dir)
         return
     """
     Gets the next alphabetical existing dir
@@ -138,13 +138,16 @@ class FileGetter:
     """
     def get_segs(self):
         self.segs = None
-        with gzip.open(self.fp + self.curr_dir + '/' + self.curr_file, 'rb') as f:
-            bytes_data = f.read()
-            audio_analysis = json.loads(bytes_data)
-            #print(audio_analysis.keys())
-            #dict_keys(['meta', 'track', 'bars', 'beats', 'sections', 'segments', 'tatums'])
-            #print(type(audio_analysis['segments'][0]['timbre'][0]))
-            self.segs = audio_analysis['segments']
+        try:
+            with gzip.open(self.fp + self.curr_dir + '/' + self.curr_file, 'rb') as f:
+                bytes_data = f.read()
+                audio_analysis = json.loads(bytes_data)
+                #print(audio_analysis.keys())
+                #dict_keys(['meta', 'track', 'bars', 'beats', 'sections', 'segments', 'tatums'])
+                #print(type(audio_analysis['segments'][0]['timbre'][0]))
+                self.segs = audio_analysis['segments']
+        except Exception as e:
+            raise Exception(str(e))
         if not(self.segs):
             #print('missing segs:'+self.curr_dir+'/'+self.curr_file)
             self.get_next_file()
