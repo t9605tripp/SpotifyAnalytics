@@ -14,7 +14,7 @@ call .get_random_seg() to get a single segment
 call .get_segs() to get all the segments
 """
 class FileGetter:
-    def __init__(self, start, end):
+    def __init__(self, start, end, cursor=None):
         self.fp = '/home/tripptd/spotify/audio_analysis/'
         #iterators were way too hard, so I made my own
         
@@ -34,6 +34,10 @@ class FileGetter:
         #Initialize the above items in init_ordered_dirs
         self.init_ordered_dirs(start, end)
         
+        if (cursor):
+            #print(cursor)
+            self.go_to_cursor(cursor)
+        
         #Flag Exhausted Files/Dirs
         #self.exhausted_files = False
         self.exhausted_dirs = False
@@ -49,7 +53,7 @@ class FileGetter:
         self.dirs_len = len(self.ordered_dirs)
         #print(self.dirs_len)
         self.get_next_dir()
-        print(self.curr_dir)
+        #print(self.curr_dir)
         return
     """
     Gets the next alphabetical existing dir
@@ -130,6 +134,18 @@ class FileGetter:
                 else:
                     return
         return
+
+    def go_to_cursor(self,cursor):
+        #select the correct dir, init the files.
+        dir_name = cursor[0:3]
+        #print(dir_name)
+        self.dir_idx = self.ordered_dirs.index(dir_name)
+        self.curr_dir = self.ordered_dirs[self.dir_idx]
+        self.init_ordered_files()
+        #print(self.get_uid(), self.curr_dir)
+        while self.get_uid() != cursor:
+            #print(self.get_uid())
+            self.get_next_file()
 
     """
     GET SEGS SECTION***********************************************************

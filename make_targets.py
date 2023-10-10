@@ -3,7 +3,8 @@ import os
 import file_getter
 import numpy as np
 from simhash import SimHash
-import random
+import traceback
+from filelock import FileLock
 
 def save_byte(idx, uid, byte, hex_dirs):
     match_dt = np.dtype([('uid', np.unicode_, 22), ('sidx', np.uint16)])
@@ -14,115 +15,107 @@ def save_byte(idx, uid, byte, hex_dirs):
     #print(save_dir)
     target_dir = save_fp + save_dir
     dir_exists = os.path.exists(target_dir)
+    lock = FileLock(f'{target_dir}.lock')
     if not(dir_exists):
             try:
                 print('make dir: ', target_dir)
                 os.makedirs(target_dir)
+                lock.acquire()
                 np.save(target_dir + '/matches.npy', target_info)
+                lock.release()
             except Exception as e:
-                return
-    else:
+                traceback.print_exc()
+    else: 
+        #with lock:
+        #    with open("high_ground.txt", "a") as f:
+        #        f.write("You were the chosen one.")
+        if not(os.path.exists(target_dir + '/matches.npy')):
+            lock.acquire()
+            #with lock:
+            np.save(target_dir + '/matches.npy', target_info)
+            lock.release()
+        else:
         #print('saving to existing dir', target_dir)
-        matches = np.load(target_dir + '/matches.npy')
-        matches = np.append(matches, target_info)
-        np.save(target_dir + '/matches.npy', matches)
+            #lock.acquire()
+            #with lock:
+            lock.acquire()
+            matches = np.load(target_dir + '/matches.npy', allow_pickle=True)
+            #lock.release()
+            matches = np.append(matches, target_info)
+            #lock.acquire()
+            np.save(target_dir + '/matches.npy', matches)
+            lock.release()
     return
 
-def init_workers(lock, chunk_start, chunk_end):
+def init_workers(chunk_start, chunk_end, cursor):
     try:
         selected_hash_fp = './index_vecs/64_robust_float32_indexes.npy'
-        fg = file_getter.FileGetter(chunk_start+1, chunk_end)
+        fg = file_getter.FileGetter(chunk_start, chunk_end, cursor)
         #MAGIC NUMBERS ARE BAD BUT HERE ARE SOME THAT CONTROL THE SELECTED VECTORS FOR COSINE SIMILARITY
         indexes = np.load(selected_hash_fp)[0:16,:]
         hasher = SimHash(indexes)
         uid = None
-        while not(fg.exhausted_dirs):
-            #print(fg.dirs_len - fg.dir_idx)
-            uid = fg.get_uid()
-            print('chunk_start: ', chunk_start, ' processing:', uid)
-            #for x in range(1):
-            for idx, seg in enumerate(fg.segs):
-                byte, hex_dirs = hasher.hash(seg)
-                #print('saving byte: ', idx)
-                try:
-                    lock.acquire()
-                    save_byte(idx, uid, byte, hex_dirs)
-                    lock.release()
-                except Exception as e:
-                    print(e)
-            fg.get_next_file()
-        return uid
-    except Exception as e:
-        return e
-
-"""
-This was needed because I didn't save the latest cursor location when making indexes originally.
-"""
-def get_cursor_location(lock, chunk_start, chunk_end):
-    selected_hash_fp = './index_vecs/64_robust_float32_indexes.npy'
-    fg = file_getter.FileGetter(chunk_start, chunk_end)
-    #fg.ordered_dirs has all the possible latest dirs
-    #dir_range = np.array(fg.ordered_dirs, dtype = np.unicode_)
-    dir_range = fg.ordered_dirs
-    dir_range.sort()
-    #print(dir_range)
-    #While you haven't found the latest file location, read all the matches.
-    save_fp = './index_vecs/64_robust_float32_query/'
-    #First level of files
-    match_8 = os.listdir(save_fp)
-    random.shuffle(match_8)
-    #Read through all the match files
-    latest_dir_idx = 0
-    latest_uid = None
-    total = len(match_8)
-    for m8_idx, match_dir in enumerate(match_8):
-        #print('dirs left: ', total-m8_idx, 'latest_idx: ', latest_dir_idx, ' ', latest_uid)
-        match_16 = os.listdir(save_fp + match_dir + '/')
-        for full_match in match_16:
-            try:
-                lock.acquire()
-                arr = np.load(save_fp + match_dir + '/' + full_match + '/matches.npy')
-                lock.release()
-                uid_arr = arr['uid']
-                uid_arr = np.char.encode(uid_arr, 'utf-8')
-                uid_arr = np.char.decode(uid_arr, 'utf-8')
-                #print(uid_arr.shape)
-                for uid in np.ndarray.tolist(uid_arr):
-                    #print(uid.dtype)
-                    #print()
+        try:
+            while not(fg.exhausted_dirs):
+                #print(fg.dirs_len - fg.dir_idx)
+                uid = fg.get_uid()
+                print('chunk_start: ', chunk_start, ' processing:', uid)
+                #It would be much more efficient to operate on all the matrix at once then write it
+                byte_data, hex_dirs = hasher.hash_all(fg.segs)
+                """
+                for idx, seg in enumerate(fg.segs):
+                    byte, hex_dirs = hasher.hash(seg)
+                    #print('saving byte: ', idx)
                     try:
-                        dirname = uid[0:3]
-                        #print(len(dir_range))
-                        for midx, poss_match in enumerate(dir_range):
-                            if poss_match == dirname:
-                                #print(midx, ' - ', poss_match)
-                        #dir_idx = dir_range.index(dirname)
-                        #print(dir_idx, ' ', dirname)
-                                if midx > latest_dir_idx:
-                                    latest_dir_idx = midx        
-                                    latest_uid = uid
-                                    print('starting: ', chunk_start, ' - latest info: ',latest_dir_idx,' - ', uid, ' - ', dir_range[latest_dir_idx])
-                    except ValueError as e:
-                        pass
-            except Exception as e:
-                print(e)
-                #print(match_dir, '/', full_match)
-    print('[',chunk_start,':',chunk_end,'] latest dir_idx: ',latest_dir_idx,'- at dir -', dir_range[latest_dir_idx])
-    #with 'last_cursor.txt' as 
+                        #print(uid)
+                        lock.acquire()
+                        save_byte(idx, uid, byte, hex_dirs)
+                        lock.release()
+                    except Exception as e:
+                        print(hex_dirs)
+                        print(uid)
+                        traceback.print_exc()
+                """
+                fg.get_next_file()
+        except Exception as e:
+            return fg.get_uid()
+
+        return uid
+        
+    except Exception as e:
+        traceback.print_exc()
+
+
+def get_latest_cursors(max_procs):
+    latest_files = os.listdir('./index_vecs/last_cursors/')[-max_procs:]
+    uids = []
+    for file in latest_files:
+        with open(f'./index_vecs/last_cursors/{file}') as f:
+            content = f.read()
+            uids.append(content.replace('\n', ''))
+    uids.sort()
+    return uids[:max_procs]
+
+def write_cursor(ret):
+    latest_files = os.listdir('./index_vecs/last_cursors/')
+    next_idx = len(latest_files)
+    with open(f'./index_vecs/last_cursors/{next_idx}.txt', 'w') as f:
+        f.write(str(ret))
 
 def main():
     # Number of worker processes (adjust as needed)
     num_processes = multiprocessing.cpu_count()
+    #num_hashers = num_processes-1
     #print(num_processes)
     # Create a multiprocessing manager and a queue to collect results
     #manager = multiprocessing.Manager()
     #result_queue = manager.Queue()
-
+    cursors = get_latest_cursors(num_processes)
+    print(cursors)
     # Create a pool of worker processes
     #lock = multiprocessing.Lock()
     pool = multiprocessing.Pool(processes=num_processes)
     manager = multiprocessing.Manager()
-    lock = manager.Lock()
     dirs = os.listdir('/home/tripptd/spotify/audio_analysis/')
     chunk_size = int(len(dirs) / num_processes)
     chunk_lens = []
@@ -135,18 +128,21 @@ def main():
         dirs = dirs[chunk_size:]
     #There are 13 chunks
     #2495 dirs each chunk
-    #latest_cursors = []
+    #ret_lock = manager.Lock()
+    for x in range(num_processes):
+        lock = manager.Lock()
+        locks.append(lock)
     # Start reading files concurrently
-    for (start_idx, chunk_len) in zip(start_idxs, chunk_lens):
-        pool.apply_async(init_workers, args=(lock,start_idx, start_idx+chunk_len))
-        #print(ret.get())
-        #latest_cursors.append(last_uid)
-        #pool.apply_async(get_cursor_location, args=(lock,start_idx, start_idx+chunk_len))
+    for (start_idx, chunk_len, cursor) in zip(start_idxs, chunk_lens, cursors):
+        ret = pool.apply_async(init_workers, args=(start_idx, start_idx+chunk_len, cursor))
+    #ret_lock.acquire()
+    #write_cursor(ret)
+    #ret_lock.release()
+    ret = ret.get()
+    print(f'ret-{start_idx}-{ret}')
+
     pool.close()
     pool.join()
-    #print(latest_cursors)
     # Close the pool and wait for all processes to complete
-    #pool.close()
-    #pool.join()
 if __name__ == "__main__":
     main()
