@@ -6,7 +6,7 @@ import spotipy
 import timbre_selection
 import read_data
 import chart_studio.tools as tls
-
+import read_targets
 
 def create_app():
     app = Flask(__name__)
@@ -136,6 +136,23 @@ def create_app():
             #track_uris.append(item['uri'].replace('spotify:track:',''))
         return render_template('selection.html', track_uris=track_uris)
     
+
+    """
+    get the current device that the client is using.
+    """
+    def get_curr_device(sp):
+        #cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+        #auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+        #if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        #    return redirect('/')
+        #sp = spotipy.Spotify(auth_manager=auth_manager)
+        devices = sp.devices()
+        target = devices['devices'][0]
+        return target['id']
+
+    """
+    Initialize the player, don't make it playback.
+    """
     def player_init(uid):
         cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
@@ -143,13 +160,30 @@ def create_app():
             return redirect('/')
         sp = spotipy.Spotify(auth_manager=auth_manager)
         uri = 'spotify:track:' + uid
-        devices = sp.devices()
+        #devices = sp.devices()
         #{'devices': [{'id': '9f6b1b4f6d3f48bbfa45f489682d7d693c1f87a1', 'is_active': False,
         #'is_private_session': False, 'is_restricted': False, 'name': 'Web Player (Chrome)',
         #'supports_volume': True, 'type': 'Computer', 'volume_percent': 100}]}
-        target_device = devices['devices'][0]
-        sp.start_playback(device_id=target_device['id'], context_uri=None, uris=[uri], offset=None, position_ms=0)
-        
+        #targetd_device = devices['devices'][0]
+        sp.start_playback(device_id=get_curr_device(sp), context_uri=None, uris=[uri], offset=None, position_ms=0)
+        return sp.track(uri)['duration_ms']
+    """
+    Get The time user clicked for segmentation
+    """
+    @app.get('/get_time')
+    def get_time():
+        cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            return redirect('/')
+        sp = spotipy.Spotify(auth_manager=auth_manager)
+        curr_playback_info = sp.current_playback()
+        start_ms = curr_playback_info['progress_ms']
+        print(start_ms)
+        return jsonify({'message': start_ms})
+    """
+    Allow user to segment the track
+    """
     @app.post('/segmentation')
     def segmentation_post():
         cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
@@ -158,10 +192,41 @@ def create_app():
             return redirect('/')
         spotify = spotipy.Spotify(auth_manager=auth_manager)
         selected_track = request.form['radio-data']        
-        player_init(selected_track)
-        return render_template('segmentation.html', selected_track=selected_track)
-
+        track_length = player_init(selected_track)
+        return render_template('segmentation.html', selected_track=selected_track, track_length=track_length)
     return app
+
+    """
+    Backend handles the logic for matching.
+    """
+    def generate_playlist(start_ms, end_ms, uid):
+        cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            return redirect('/')
+        sp = spotipy.Spotify(auth_manager=auth_manager)
+        uris, scores = None
+        uris, scores = read_targets.query_run(start_ms, end_ms, uid)
+        print(sp.current_user())
+        #sp.user_playlist_create(user, name, public=False, collaborative=False, description='Timbre Matches')
+        return uris, scores
+
+    """
+    All the stuff to return a nice result at the end.
+    """
+    @app.post('/get_results')
+    async def get_results():
+        cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            return redirect('/')
+        sp = spotipy.Spotify(auth_manager=auth_manager)
+        start_ms = request.form['startSlice']
+        end_ms = request.form['endSlice']
+        uid = request.form['uid']
+        uids, match_scores = generate_playlist(start_ms, end_ms, uid)
+        return render_template('segmentation.html', uids=uids, match_scores=match_scores)
+
 '''
 Following lines allow application to be run more conveniently with
 `python app.py` (Make sure you're using python3)

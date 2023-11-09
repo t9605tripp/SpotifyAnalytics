@@ -16,31 +16,30 @@ call .get_segs() to get all the segments
 class FileGetter:
     def __init__(self, start, end, cursor=None):
         self.fp = '/home/tripptd/spotify/audio_analysis/'
-        #iterators were way too hard, so I made my own
-        
+        #iterators were way too hard, so I made my own 
         #Set up Directory Controller
         self.dir_idx = -1
         self.ordered_dirs = None
         self.dirs_len = 0
         self.curr_dir = None
-        
         #Set up File Controller/Segs Controller
         self.file_idx = -1
         self.ordered_files = None
         self.files_len = 0
         self.curr_file = None
         self.segs = None
-
+        self.exhausted_dirs = False
         #Initialize the above items in init_ordered_dirs
         self.init_ordered_dirs(start, end)
-        
-        if (cursor):
-            #print(cursor)
+        #print('last dir ', start, '  ', self.ordered_dirs[-1])
+        if cursor is not None and not(cursor == ''):
+            print('last dir for: ', start,'  ', cursor, '  ', self.ordered_dirs[-1])
             self.go_to_cursor(cursor)
-        
+        else:
+            self.go_to_cursor(self.get_uid())
         #Flag Exhausted Files/Dirs
         #self.exhausted_files = False
-        self.exhausted_dirs = False
+        
     """
     GET DIRS SECTION***********************************************************
     """
@@ -126,7 +125,11 @@ class FileGetter:
             if self.file_idx < self.files_len:
                 self.curr_file = self.ordered_files[self.file_idx]
                 #print(self.curr_file)
-                self.get_segs()
+                if self.curr_file[-2:] == 'gz':
+                    #print('getting segs')
+                    self.get_segs()
+                else:
+                    continue
             else:
                 self.file_idx = -1
                 if not(self.exhausted_dirs):
@@ -139,9 +142,16 @@ class FileGetter:
         #select the correct dir, init the files.
         dir_name = cursor[0:3]
         #print(dir_name)
-        self.dir_idx = self.ordered_dirs.index(dir_name)
-        self.curr_dir = self.ordered_dirs[self.dir_idx]
-        self.init_ordered_files()
+        #print(dir_name in self.ordered_dirs)
+        #go to directory and initialize files
+        original_uid = self.get_uid()
+        try:
+            self.dir_idx = self.ordered_dirs.index(dir_name)
+            self.curr_dir = self.ordered_dirs[self.dir_idx]
+            self.init_ordered_files()
+        except Exception as e:
+            self.go_to_cursor(original_uid)
+            #print(cursor, '***********\n',self.ordered_dirs, '\n***************')
         #print(self.get_uid(), self.curr_dir)
         while self.get_uid() != cursor:
             #print(self.get_uid())
@@ -158,16 +168,23 @@ class FileGetter:
             with gzip.open(self.fp + self.curr_dir + '/' + self.curr_file, 'rb') as f:
                 bytes_data = f.read()
                 audio_analysis = json.loads(bytes_data)
-                #print(audio_analysis.keys())
+                ##print(audio_analysis.keys())
                 #dict_keys(['meta', 'track', 'bars', 'beats', 'sections', 'segments', 'tatums'])
                 #print(type(audio_analysis['segments'][0]['timbre'][0]))
-                self.segs = audio_analysis['segments']
+                if audio_analysis is None:
+                    self.get_next_file
+                if 'segments' in audio_analysis.keys():
+                    self.segs = audio_analysis['segments']
+                else:
+                    self.get_next_file()
+                #print(str(self.segs))
         except Exception as e:
-            raise Exception(str(e))
-        if not(self.segs):
+            #print(str(e))
+            self.get_next_file()
+            #raise Exception(str(e))
+        if self.segs is None:
             #print('missing segs:'+self.curr_dir+'/'+self.curr_file)
             self.get_next_file()
-        #print(self.segs)
         return
 
     def get_random_seg(self):
