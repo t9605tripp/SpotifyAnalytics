@@ -118,10 +118,11 @@ class FileGetter:
     """
     SELECT the next valid file if it has segs
     """
-    def get_next_file(self):
+    def get_next_file(self, bound_dir=False,query=None):
         self.curr_file = None
         while not(self.curr_file):
             self.file_idx += 1
+            #If you still have files in the dir, load the segs
             if self.file_idx < self.files_len:
                 self.curr_file = self.ordered_files[self.file_idx]
                 #print(self.curr_file)
@@ -130,6 +131,17 @@ class FileGetter:
                     self.get_segs()
                 else:
                     continue
+            #else if you should stop in that directory, then get segs from spotify
+            elif bound_dir:
+                import spotipy
+                from spotipy.oauth2 import SpotifyClientCredentials
+                print('Unable to find that file, lets get it')
+                sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
+                self.segs = sp.audio_analysis(query)['segments']
+                if self.segs is None:
+                    print('not right... something.. is wrong')
+                self.curr_file = f'{query}.getuidp'
+                return
             else:
                 self.file_idx = -1
                 if not(self.exhausted_dirs):
@@ -155,7 +167,7 @@ class FileGetter:
         #print(self.get_uid(), self.curr_dir)
         while self.get_uid() != cursor:
             #print(self.get_uid())
-            self.get_next_file()
+            self.get_next_file(bound_dir=True,query=cursor)
 
     """
     GET SEGS SECTION***********************************************************

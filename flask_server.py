@@ -6,6 +6,7 @@ import spotipy
 import timbre_selection
 import read_data
 import chart_studio.tools as tls
+import asyncio
 import read_targets
 
 def create_app():
@@ -37,13 +38,18 @@ def create_app():
 
         # Step 3. Signed in, display data
         spotify = spotipy.Spotify(auth_manager=auth_manager)
-        return f'<h2>Hi {spotify.me()["display_name"]}, ' \
+        username = spotify.me()["display_name"]
+        return render_template('index.html', user=username)
+
+    """
+    f'<h2>Hi {spotify.me()["display_name"]}, ' \
                f'<small><a href="/sign_out">[sign out]<a/></small></h2>' \
                f'<a href="/playlists">my playlists</a> | ' \
                f'<a href="/currently_playing">currently playing</a> | ' \
             f'<a href="/current_user">me</a> | ' \
             f'<a href="/selection">Select a Song | </a>' \
             f'<a href="/stats_display">Show Stats</a>'
+    """
 
     #template
     @app.route('/sign_out')
@@ -194,28 +200,34 @@ def create_app():
         selected_track = request.form['radio-data']        
         track_length = player_init(selected_track)
         return render_template('segmentation.html', selected_track=selected_track, track_length=track_length)
-    return app
+
+
 
     """
     Backend handles the logic for matching.
     """
-    def generate_playlist(start_ms, end_ms, uid):
+    async def generate_playlist(start_ms, end_ms, uid):
         cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
             return redirect('/')
         sp = spotipy.Spotify(auth_manager=auth_manager)
-        uris, scores = None
+        uris = None
+        scores = None
         uris, scores = read_targets.query_run(start_ms, end_ms, uid)
-        print(sp.current_user())
-        #sp.user_playlist_create(user, name, public=False, collaborative=False, description='Timbre Matches')
+        #print(sp.current_user())
+        user_uri = sp.current_user()['id']
+        new_playlist = sp.user_playlist_create(user=user_uri, name='Matching Timbre', public=False, collaborative=False, description='Timbre Matches')
+        #print(resp)
+        print(uris)
+        sp.user_playlist_add_tracks(user=user_uri, playlist_id=new_playlist['id'], tracks=uris)
         return uris, scores
 
     """
     All the stuff to return a nice result at the end.
     """
-    @app.post('/get_results')
-    async def get_results():
+    @app.post('/matches')
+    async def matches():
         cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
@@ -224,8 +236,12 @@ def create_app():
         start_ms = request.form['startSlice']
         end_ms = request.form['endSlice']
         uid = request.form['uid']
-        uids, match_scores = generate_playlist(start_ms, end_ms, uid)
-        return render_template('segmentation.html', uids=uids, match_scores=match_scores)
+        #print(start_ms)
+        uids, scores = await generate_playlist(float(start_ms), float(end_ms), uid)
+        print('rendering template with this many: ', len(uids))
+        return render_template('get_results.html', results=zip(uids,scores))
+    return app
+
 
 '''
 Following lines allow application to be run more conveniently with
