@@ -155,12 +155,23 @@ def get_index_vec_trace(index_vec):
         y=[0, index_vec[1]],
         z=[0, index_vec[2]],
         mode='lines+markers',
-        line=dict(color='blue', width=4),
-        marker=dict(color='blue', size=8),
+        line=dict(color='lime', width=4),
+        marker=dict(color='blue', size=4),
         name='Vector',
         showlegend=False
     )
-    return vec_trace
+    pointer_trace = go.Cone(
+        x=[index_vec[0]],
+        y=[index_vec[1]],
+        z=[index_vec[2]],
+        u=[0],
+        v=[0],
+        w=[0],
+        sizemode='absolute',
+        sizeref=0.1,
+        showscale=False
+    )
+    return vec_trace, pointer_trace
 
 def plotting():
     transformer, scaled_data, data = get_robust_scaled_data()
@@ -189,49 +200,50 @@ def plotting():
 
     pio.write_html(fig, '3d_original.html')
     """
-    scaled = scaled.head(10000)
-    scaled['avg'] = (scaled["scaled_t1"] + scaled["scaled_t2"] + scaled["scaled_t3"]) / 3
-    fig = go.Figure()
-    #fig = px.scatter_3d(scaled[["scaled_t1", "scaled_t2", "scaled_t3", "avg"]], x='scaled_t1', y='scaled_t2', z='scaled_t3', color=scaled['avg'], showlegend=False)
-    scatter_trace = go.Scatter3d(
-        x=scaled["scaled_t1"],
-        y=scaled["scaled_t2"],
-        z=scaled["scaled_t3"],
-        mode="markers",
-        marker=dict(
-            size=7,
-            color=scaled["avg"],
-            colorscale="Viridis",
-            opacity=1
-        ),
-        showlegend=False
-    )
-    fig.add_trace(scatter_trace)
-    #Make the grid scale better.
-    #fig.update_layout(scene=dict(xaxis=dict(range=[scaled["scaled_t1"].min(), scaled["scaled_t1"].max()]), yaxis=dict(range=[scaled["scaled_t2"].min(), scaled["scaled_t2"].max()]), zaxis=dict(range=[scaled["scaled_t3"].min(), scaled["scaled_t3"].max()])))
     
+    scaled = scaled.head(1000)
+    scaled['avg'] = (scaled["scaled_t1"] + scaled["scaled_t5"] + scaled["scaled_t11"]) / 3
+    fig = go.Figure()
+    config = {'displaylogo': False}
+    """
+    Add the planes
+    """
     #Same grid for surface making.
     plane_x = np.linspace(scaled["scaled_t1"].min(), scaled["scaled_t1"].max(), 100)
-    plane_y = np.linspace(scaled["scaled_t2"].min(), scaled["scaled_t2"].max(), 100)
+    plane_y = np.linspace(scaled["scaled_t5"].min(), scaled["scaled_t5"].max(), 100)
     plane_x, plane_y = np.meshgrid(plane_x, plane_y)
-    #print(index_arr[0,0:3])
-    #print(np.array([scaled.iloc[0,0], scaled.iloc[0,1], scaled.iloc[0,2]]))
-    #plane_surface = get_cosine_sim_area(index_arr[0,0:3])
-    #neg_surf, pos_surf = cosine_negative(index_arr[0,0:3], plane_x, plane_y)
-    
     for index_vec in index_arr[0:4,:]:
         a,b,c = index_vec[0:3]
         plane_z = (-a * plane_x - b * plane_y) / c
         surf = go.Surface(x=plane_x, y=plane_y, z=plane_z, opacity=0.5, showlegend=False)
         fig.add_trace(surf)
-        vec = get_index_vec_trace(index_vec[0:3])
+        vec, pointer = get_index_vec_trace(index_vec[0:3])
         fig.add_trace(vec)
-    #fig.add_trace(neg_surf)
-    #fig.add_trace(pos_surf)
-    fig.update_layout(showlegend=False, scene=dict(xaxis=dict(range=[scaled["scaled_t1"].min(), scaled["scaled_t1"].max()]), yaxis=dict(range=[scaled["scaled_t2"].min(), scaled["scaled_t2"].max()]), zaxis=dict(range=[scaled["scaled_t3"].min(), scaled["scaled_t3"].max()])))
-    #12 values
-    #fig.update_traces(marker_showscale=False)
-    pio.write_html(fig, '3d_sliced.html')
+        fig.add_trace(pointer)
+    """
+    Add the point cloud
+    """
+    scatter_trace = go.Scatter3d(
+        x=scaled["scaled_t1"],
+        y=scaled["scaled_t5"],
+        z=scaled["scaled_t11"],
+        mode="markers",
+        marker=dict(
+            size=7,
+            color=scaled["avg"],
+            colorscale="Viridis",
+            opacity=0.5
+        ),
+        showlegend=True
+    )
+    fig.add_trace(scatter_trace)
+    """
+    Update the axes to scale right.
+    """
+    fig.update_layout(showlegend=False, scene=dict(xaxis=dict(title="t1", range=[scaled["scaled_t1"].min(), scaled["scaled_t1"].max()]),
+        yaxis=dict(title="t5", range=[scaled["scaled_t5"].min(), scaled["scaled_t5"].max()]),
+        zaxis=dict(title="t11", range=[scaled["scaled_t11"].min(), scaled["scaled_t11"].max()])))
+    fig.write_html('3d_sliced.html', config=config)
 """
     #pio.write_html(fig, '3d_scaled.html')
 """
