@@ -1,0 +1,73 @@
+#page {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template:
+    [header-left] "head head" 50px [header-right]
+    [main-left] "nav  main" 1fr [main-right]
+    [footer-left] "nav  foot" 50px [footer-right]
+    / 120px 1fr;
+}
+
+tr:hover {
+	background-color: #FFCC00;
+}
+
+tr {
+  border-bottom: 1px solid #ddd;
+  margin: 0px
+}
+
+ul {
+  list-style-type: none;
+}
+
+header {
+  background-color: #FFCC00;
+  color: black;
+  grid-area: head;
+}
+
+header.a{
+	color:black;
+}
+
+nav {
+  background-color: #FFCC00;
+  color: black;
+  grid-area: nav;
+}
+
+nav.li{
+	background-color: #FFDD11;
+}
+
+
+
+main {
+  background-color: white;
+  color: black;
+  grid-area: main;
+}
+
+footer {
+  background-color: black;
+  color: #FFCC00;
+  grid-area: foot;
+}
+#data_area {
+  display: grid;
+  height: 100%;
+  grid-template-columns: auto;
+  grid-auto-rows: minmax(100px, auto);
+  grid-template-areas: 
+  "head" "head"
+  "data_portion" "data_portion";
+}
+#select_data {
+	grid-area: head;
+}
+
+.display_data {
+	grid-area: data_portion
+}

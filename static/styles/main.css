@@ -21,6 +21,7 @@ tr {
 ul {
   list-style-type: none;
 }
+
 header {
   background-color: #FFCC00;
   color: black;
@@ -31,15 +32,17 @@ header.a{
 	color:black;
 }
 
-nav.li{
-	background-color: #FFDD11;
-}
-
 nav {
   background-color: #FFCC00;
   color: black;
   grid-area: nav;
 }
+
+nav.li{
+	background-color: #FFDD11;
+}
+
+
 
 main {
   background-color: white;
